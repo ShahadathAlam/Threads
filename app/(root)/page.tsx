@@ -1,5 +1,9 @@
 import React from "react";
 
-export default function Page() {
-  return <div>Page</div>;
+export default function Home() {
+  return (
+    <>
+      <h1 className="head-text text-left">Home</h1>
+    </>
+  );
 }
