@@ -30,7 +30,7 @@ export default function Bottombar() {
                 width={24}
                 height={24}
               />
-              <p className="text-subtle-medium text-light-1 max:sm:hidden">
+              <p className="text-subtle-medium text-light-1 max-sm:hidden">
                 {link.label.split(/\s+/)[0]}
                 {/* {link.label.split(" ")[0]} */}
               </p>
