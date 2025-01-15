@@ -2,9 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Configuration options
-  experimental: {
-    serverActions: {}, // Updated to an empty object
-  },
+  // experimental: {
+  //   serverActions: {}, // Updated to an empty object
+  // },
   serverExternalPackages: ["mongoose"], // Moved from experimental
   eslint: {
     // Allows production builds even if there are ESLint errors
