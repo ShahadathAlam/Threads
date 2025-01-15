@@ -1,22 +1,204 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Threads App
+
+## Table of Contents
+
+1. [What is Threads?](#what-is-threads)
+2. [Features](#features)
+3. [Tech Stack](#tech-stack)
+4. [Getting Started](#getting-started)
+5. [Common Issues and Solutions](#common-issues-and-solutions)
+   - [JWT Clock Skew Issue Resolution](#jwt-clock-skew-issue-resolution)
+   - [Debugging and Fixing Image Upload Issues](#debugging-and-fixing-image-upload-issues)
+6. [Deployment](#deployment)
+7. [Contributing](#contributing)
+8. [License](#license)
+9. [Acknowledgments](#acknowledgments)
+10. [Support](#support)
+
+---
+
+## What is Threads?
+
+Threads is a text-based app allows users to share updates and join public conversations. It's designed to be a separate space for real-time updates and public conversations. The app provides a dynamic platform for creating and managing threads, communities, and engaging in discussions with users worldwide.
+
+---
+
+## Features
+
+### Authentication
+
+- Authentication using Clerk for email, password, and social logins (Google and GitHub) with a comprehensive profile management system.
+
+### Visually Appealing Home Page
+
+- A visually appealing home page showcasing the latest threads for an engaging user experience.
+
+### Create Thread Page
+
+- A dedicated page for users to create threads, fostering community engagement.
+
+### Commenting Feature
+
+- A commenting feature to facilitate discussions within threads.
+
+### Nested Commenting
+
+- Commenting system with nested threads, providing a structured conversation flow.
+
+### User Search with Pagination
+
+- A user search feature with pagination for easy exploration and discovery of other users.
+
+### Activity Page
+
+- Display notifications on the activity page when someone comments on a user's thread, enhancing user engagement.
+
+### Profile Page
+
+- User profile pages for showcasing information and enabling modification of profile settings.
+
+### Create and Invite to Communities
+
+- Allow users to create new communities and invite others using customizable template emails.
+
+### Community Member Management
+
+- A user-friendly interface to manage community members, allowing role changes and removals.
+
+### Admin-Specific Community Threads
+
+- Enable admins to create threads specifically for their community.
+
+### Community Search with Pagination
+
+- A community search feature with pagination for exploring different communities.
+
+### Community Profiles
+
+- Display community profiles showcasing threads and members for a comprehensive overview.
+
+### Figma Design Implementation
+
+- Transform Figma designs into a fully functional application with pixel-perfect and responsive design.
+
+### Blazing-Fast Performance
+
+- Optimal performance and instantaneous page switching for a seamless user experience.
+
+### Server Side Rendering
+
+- Utilize Next.js with Server Side Rendering for enhanced performance and SEO benefits.
+
+### MongoDB with Complex Schemas
+
+- Handle complex schemas and multiple data populations using MongoDB.
+
+### File Uploads with UploadThing
+
+- File uploads using UploadThing for a seamless media sharing experience.
+
+### Real-Time Events Listening
+
+- Real-time events listening with webhooks to keep users updated.
+
+### Middleware, API Actions, and Authorization
+
+- Utilize middleware, API actions, and authorization for robust application security.
+
+### Next.js Layout Route Groups
+
+- New Next.js layout route groups for efficient routing.
+
+### Data Validation with Zod
+
+- Data integrity with data validation using Zod.
+
+### Form Management with React Hook Form
+
+- Efficient management of forms with React Hook Form for a streamlined user input experience.
+
+### Code Architecture and Reusability
+
+- Highly modular code architecture ensuring reusability and maintainability.
+
+---
+
+## Tech Stack
+
+The tech stack for Threads is as follows:
+
+- **Frontend**:
+  - React
+  - Next.js
+  - Tailwind CSS
+  - TypeScript
+- **Backend**:
+  - Node.js
+  - MongoDB with Mongoose (ORM)
+  - Clerk (Authentication)
+  - UploadThing (File Uploads)
+  - Svix (Webhooks)
+- **Development Tools**:
+  - ESLint, Prettier (Code linting and formatting)
+  - Radix UI (Components)
+  - Zod (Validation)
+  - React Hook Form (Form Management)
+
+---
 
 ## Getting Started
 
-First, run the development server:
+To set up and run Threads locally, follow the steps below:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Prerequisites
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Node.js (v16 or higher)
+- MongoDB (for local development) or a cloud-based MongoDB service
+- Clerk account for authentication
 
-# **JWT Clock Skew Issue Resolution**
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/yourusername/threads.git
+   cd threads
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+
+   - Create a `.env.local` file in the root directory.
+   - Add the following environment variables:
+     ```env # Clerk Configuration
+     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your-clerk-publishable-key
+     CLERK_SECRET_KEY=your-clerk-secret-key
+     NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+     NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+     NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL=/onboarding
+     NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/sign-in
+     MONGODB_URL=your-mongodb-connection-string
+     UPLOADTHING_TOKEN=your-uploadthing-token
+     ```
+
+4. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Visit `http://localhost:3000` in your browser to view the app.
+
+---
+
+## Common Issues and Solutions
+
+### JWT Clock Skew Issue Resolution
 
 ## **Problem Overview**
 
@@ -65,3 +247,181 @@ Syncing the system clock ensures that both the JWT `nbf` claim and the system ti
 ## **Conclusion**
 
 By syncing the system clock, verifying the Clerk instance keys, and ensuring that the `nbf` claim is correctly set, you can resolve the JWT clock skew error and ensure your application functions smoothly. Regularly syncing your system time will prevent similar issues in the future.
+
+---
+
+### Debugging and Fixing Image Upload Issues
+
+**Threads App** is a social platform built to foster conversations. While developing the app ([GitHub Repo](https://github.com/ShahadathAlam/Threads)), I encountered a tricky issue where user profile updates behaved inconsistently:
+
+1. Sometimes, the database would update successfully with user details, but the profile photo upload would fail.
+2. Other times, the profile photo would upload successfully, but the database would not update.
+
+---
+
+## **The Problem**
+
+The app uses [UploadThing](https://uploadthing.com) for handling image uploads and [Clerk](https://clerk.dev) for authentication and user management. When a user updated their profile with a new photo:
+
+- The image upload process sometimes failed silently.
+- The `startUpload` function returned an invalid response.
+- As a result, the database was either updated with incomplete data or not updated at all.
+
+---
+
+## **Why the Problem Occurred**
+
+The issue was rooted in the middleware configuration for route protection. Clerk provides a middleware (`clerkMiddleware`) to secure routes and ensure only authenticated users can access them. By default, any route not explicitly marked as **public** is considered **protected**, requiring authentication.
+
+The `/api/uploadthing` route, used by UploadThing for handling file uploads, was not marked as public in the Clerk middleware configuration. This caused Clerk to block unauthenticated access to this endpoint, leading to the following behavior:
+
+- **Blocked Requests**: Clerk denied access to the `/api/uploadthing` endpoint for file uploads since it was treated as a protected route.
+- **Silent Failures**: The upload request failed, and no valid image URL was returned to update the user profile.
+
+---
+
+## **How the Problem Occurred**
+
+Here’s the original middleware configuration:
+
+```typescript
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+
+const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
+
+export default clerkMiddleware(async (auth, request) => {
+  if (!isPublicRoute(request)) {
+    await auth.protect();
+  }
+});
+
+export const config = {
+  matcher: [
+    // Skip static files and internals
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
+  ],
+};
+```
+
+In this configuration, only `/sign-in` and `/sign-up` routes were explicitly marked as public. Since `/api/uploadthing` was missing from the `isPublicRoute` list, Clerk treated it as a protected route and blocked upload requests.
+
+---
+
+## **How the Problem Was Solved**
+
+The solution was to explicitly mark the `/api/uploadthing` route as public in the `isPublicRoute` matcher. This ensured that UploadThing’s endpoint could be accessed without requiring authentication.
+
+Here’s the updated middleware configuration:
+
+```typescript
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+
+const isPublicRoute = createRouteMatcher([
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/uploadthing(.*)", // Added this line
+]);
+
+export default clerkMiddleware(async (auth, request) => {
+  if (!isPublicRoute(request)) {
+    await auth.protect();
+  }
+});
+
+export const config = {
+  matcher: [
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
+  ],
+};
+```
+
+By adding `/api/uploadthing(.*)` to the list of public routes, the UploadThing endpoint was no longer blocked by Clerk, allowing the `startUpload` function to work seamlessly.
+
+---
+
+## **Results**
+
+After making this change:
+
+- **Image uploads worked flawlessly**: The `startUpload` function successfully returned the uploaded image URL.
+- **Database updates were accurate**: Both the image URL and user details were correctly updated in the database.
+- **No more silent failures**: The process was streamlined and reliable.
+
+---
+
+## **Key Takeaways**
+
+1. **Middleware Configuration Matters**:
+   Always ensure that routes required by third-party tools (like UploadThing) are properly configured in your middleware.
+
+2. **Debug Incrementally**:
+   Adding logs before and after critical functions (e.g., `startUpload`) can help identify where failures occur.
+
+3. **Understand Your Tools**:
+   Knowing how Clerk handles route protection and how UploadThing operates helped pinpoint the problem.
+
+4. **Security is Critical**:
+   While marking routes as public solves access issues, always validate the requests on the server side to prevent abuse (e.g., validating file types or user identities).
+
+---
+
+## **Conclusion**
+
+This was a valuable learning experience during the development of **Threads App**. Middleware misconfigurations can introduce subtle bugs, but understanding how tools work together—and taking the time to debug systematically—can save you hours of frustration.
+
+If you’re building an app with Clerk and UploadThing, make sure your upload routes are configured properly in your middleware. Hopefully, this solution can save you time and effort!
+
+---
+
+## Deployment
+
+For deployment, you can use platforms like Vercel, Netlify, or your preferred hosting provider.
+
+1. **Build the App**:
+
+   ```bash
+   npm run build
+   ```
+
+2. **Deploy to Vercel**:
+   - Connect your GitHub repository to Vercel.
+   - Vercel will automatically build and deploy your app.
+
+---
+
+## Contributing
+
+We welcome contributions! To contribute to the Threads app:
+
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Make your changes.
+4. Submit a pull request with a clear description of your changes.
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## Acknowledgments
+
+- [Clerk](https://clerk.dev) for authentication.
+- [UploadThing](https://uploadthing.com) for handling file uploads.
+- [Radix UI](https://radix-ui.com) for accessible UI components.
+- [Tailwind CSS](https://tailwindcss.com) for styling.
+- [Zod](https://zod.dev) for validation.
+
+---
+
+## Support
+
+If you have any questions or need assistance, feel free to reach out!
+
+- Email: [shahadathalam@ymail.com](mailto:shahadathalam@ymail.com)
+- GitHub: [ShahadathAlam](https://github.com/ShahadathAlam)
+- LinkedIn: [mdshahadathalam](https://www.linkedin.com/in/mdshahadathalam/)
