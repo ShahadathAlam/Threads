@@ -6,6 +6,7 @@ async function Page() {
 
   // console.log(user);
   const userInfo = {};
+
   const userData = {
     id: user?.id || "",
 
@@ -15,6 +16,16 @@ async function Page() {
     bio: userInfo?.bio || "",
     image: userInfo?.image || user?.imageUrl,
   };
+
+  // const userData = {
+  //   id: user?.id || "",
+
+  //   objectId: "123",
+  //   username: user?.username || "",
+  //   name: user?.firstName || "",
+  //   bio: "123",
+  //   image: user?.imageUrl || "",
+  // };
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col justify-start px-10 py-20">

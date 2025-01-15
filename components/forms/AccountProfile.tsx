@@ -42,11 +42,11 @@ export default function AccountProfile({ user, btnTitle }: Props) {
 
   const { startUpload, routeConfig } = useUploadThing("media", {
     onClientUploadComplete: () => {
-      alert("uploaded successfully!");
+      console.log("uploaded successfully!");
     },
     onUploadError: (error) => {
       console.error("Upload error:", error);
-      alert("error occurred while uploading");
+      // alert("error occurred while uploading");
     },
     onUploadBegin: ({ file }: any) => {
       console.log("upload has begun for", file);
@@ -65,27 +65,6 @@ export default function AccountProfile({ user, btnTitle }: Props) {
       bio: user?.bio || "",
     },
   });
-  const handleImage = (
-    e: ChangeEvent<HTMLInputElement>,
-    fieldChange: (value: string) => void
-  ) => {
-    e.preventDefault();
-
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFiles = Array.from(e.target.files);
-      console.log("Selected files:", selectedFiles);
-
-      setFiles(selectedFiles); // Update files state
-      const fileReader = new FileReader();
-
-      fileReader.onload = (event) => {
-        const imageDataUrl = event.target?.result?.toString() || "";
-        fieldChange(imageDataUrl);
-      };
-
-      fileReader.readAsDataURL(selectedFiles[0]); // Read the first file
-    }
-  };
 
   // const handleImage = (
   //   e: ChangeEvent<HTMLInputElement>,
@@ -93,23 +72,45 @@ export default function AccountProfile({ user, btnTitle }: Props) {
   // ) => {
   //   e.preventDefault();
 
-  //   const fileReader = new FileReader();
   //   if (e.target.files && e.target.files.length > 0) {
-  //     const file = e.target.files[0];
-  //     console.log(file);
-  //     setFiles(Array.from(e.target.files));
+  //     const selectedFiles = Array.from(e.target.files);
+  //     console.log("Selected files:", selectedFiles);
 
-  //     // if (!file.type.includes("image")) return;
+  //     setFiles(selectedFiles); // Update files state
+  //     const fileReader = new FileReader();
 
-  //     fileReader.onload = async (event) => {
+  //     fileReader.onload = (event) => {
   //       const imageDataUrl = event.target?.result?.toString() || "";
-
   //       fieldChange(imageDataUrl);
   //     };
 
-  //     fileReader.readAsDataURL(file);
+  //     fileReader.readAsDataURL(selectedFiles[0]); // Read the first file
   //   }
   // };
+
+  const handleImage = (
+    e: ChangeEvent<HTMLInputElement>,
+    fieldChange: (value: string) => void
+  ) => {
+    e.preventDefault();
+
+    const fileReader = new FileReader();
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      console.log(file);
+      setFiles(Array.from(e.target.files));
+
+      if (!file.type.includes("image")) return;
+
+      fileReader.onload = async (event) => {
+        const imageDataUrl = event.target?.result?.toString() || "";
+
+        fieldChange(imageDataUrl);
+      };
+
+      fileReader.readAsDataURL(file);
+    }
+  };
 
   async function onSubmit(values: z.infer<typeof UserValidation>) {
     console.log("onSubmit triggered with values:", values);
@@ -137,7 +138,7 @@ export default function AccountProfile({ user, btnTitle }: Props) {
             "Image upload failed or returned an invalid response:",
             imgRes
           );
-          alert("Failed to upload the image. Please try again.");
+          // alert("Failed to upload the image. Please try again.");
           return;
         }
 
@@ -163,7 +164,7 @@ export default function AccountProfile({ user, btnTitle }: Props) {
       }
     } catch (error) {
       console.error("Error in onSubmit:", error);
-      alert("An error occurred. Please try again.");
+      // alert("An error occurred. Please try again.");
     }
   }
 
