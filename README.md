@@ -9,6 +9,7 @@
 5. [Common Issues and Solutions](#common-issues-and-solutions)
    - [JWT Clock Skew Issue Resolution](#jwt-clock-skew-issue-resolution)
    - [Debugging and Fixing Image Upload Issues](#debugging-and-fixing-image-upload-issues)
+   - [Only plain objects can be passed to client components from server components](#only-plain-objects-can-be-passed-to-client-components-from-server-components)
 6. [Deployment](#deployment)
 7. [Contributing](#contributing)
 8. [License](#license)
@@ -375,7 +376,150 @@ If you’re building an app with Clerk and UploadThing, make sure your upload ro
 
 ---
 
-## Deployment
+# Only plain objects can be passed to client components from server components
+
+### Problem Description
+
+When building a full-stack application in Next.js using Server and Client Components, you might encounter the following error:
+
+```
+Error:
+Only plain objects can be passed to Client Components from Server Components. Objects with toJSON methods are not supported. Convert it manually to a simple value before passing it to props.
+<... userId={{buffer: ...}}>
+              ^^^^^^^^^^^^^^^
+```
+
+This error typically occurs when the data returned from the backend or database includes complex objects (e.g., MongoDB's `ObjectId`, Buffer objects, or other non-serializable data types). Client components in Next.js expect data to be serializable and plain.
+
+### Example Scenario
+
+Suppose you have the following Server Component that fetches user data:
+
+```tsx
+import PostThread from "@/components/forms/PostThread";
+import { fetchUser } from "@/lib/actions/user.actions";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+
+export default async function Page() {
+  const user = await currentUser();
+
+  if (!user) return null;
+
+  const userInfo = await fetchUser(user.id);
+
+  if (!userInfo?.onboarded) redirect("/onboarding");
+
+  return (
+    <>
+      <h1 className="head-text">Create Thread</h1>
+
+      <PostThread userId={userInfo._id} />
+    </>
+  );
+}
+```
+
+Here, `userInfo._id` is likely a MongoDB `ObjectId`, which is not serializable. Passing it directly to the `PostThread` Client Component results in the error.
+
+---
+
+### Solution: Serialize Data Before Passing to Client Components
+
+To resolve this issue, you need to convert the non-serializable data (e.g., `ObjectId`) into a plain, serializable format such as a string.
+
+#### Updated Code
+
+```tsx
+import PostThread from "@/components/forms/PostThread";
+import { fetchUser } from "@/lib/actions/user.actions";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+
+export default async function Page() {
+  const user = await currentUser();
+
+  if (!user) return null;
+
+  const userInfo = await fetchUser(user.id);
+
+  if (!userInfo?.onboarded) redirect("/onboarding");
+
+  // Convert non-serializable ObjectId to a string
+  const userId = userInfo._id.toString();
+
+  return (
+    <>
+      <h1 className="head-text">Create Thread</h1>
+
+      <PostThread userId={userId} />
+    </>
+  );
+}
+```
+
+#### Key Changes
+
+- Used `.toString()` on `userInfo._id` to ensure it is a plain, serializable string before passing it to the `PostThread` Client Component.
+
+---
+
+### Why This Works
+
+Client Components in Next.js only accept data that can be serialized to JSON (e.g., plain objects, strings, numbers). Using `.toString()` converts the `ObjectId` into a plain string, making it compatible with Client Components.
+
+---
+
+### General Guidelines for Preventing This Issue
+
+1. **Always Serialize Non-Plain Data:**
+
+   - For MongoDB `ObjectId`, use `.toString()`.
+   - For other complex types like `Date`, convert to ISO strings using `.toISOString()`.
+
+2. **Sanitize Data in Server Components:**
+
+   - Ensure any data returned from the database or backend is serialized before passing it to a Client Component.
+
+3. **Validate Data Shape:**
+
+   - Use tools like `zod` or `Joi` to validate the shape of the data being passed to components.
+
+4. **Use Utility Functions for Serialization:**
+
+   - Write a helper function to serialize data consistently across the app. For example:
+
+   ```typescript
+   export function serializeUser(user: any) {
+     return {
+       ...user,
+       _id: user._id?.toString(),
+     };
+   }
+   ```
+
+   Use it in your Server Component:
+
+   ```tsx
+   const userInfo = serializeUser(await fetchUser(user.id));
+   ```
+
+---
+
+### Comparison Table
+
+| Component Type       | Data Type Supported             | Example                  | When to Use                                      |
+| -------------------- | ------------------------------- | ------------------------ | ------------------------------------------------ |
+| **Server Component** | Plain and Non-Serializable Data | `ObjectId`, `Buffer`     | When fetching data from a database or backend.   |
+| **Client Component** | Serializable Data Only          | `string`, `number`, `[]` | When rendering UI and interacting with the user. |
+
+---
+
+By following these practices, you can ensure seamless data handling between Server and Client Components in your Next.js application, avoiding serialization-related errors like the one discussed above.
+
+---
+
+# Deployment
 
 For deployment, you can use platforms like Vercel, Netlify, or your preferred hosting provider.
 
