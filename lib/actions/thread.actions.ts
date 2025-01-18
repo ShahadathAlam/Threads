@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import User from "../models/user.model";
 import { connectToDB } from "../mongoose";
+import Thread from "../models/thread.model";
 
 interface Params {
   text: string;
@@ -18,9 +19,27 @@ export async function createThread({
   communityId,
 
   path,
-}: Params): Promise<void> {
+}: Params) {
   await connectToDB();
 
   try {
-  } catch (error: any) {}
+    const createdThread = await Thread.create({
+      text,
+      author,
+      community: null,
+    });
+
+    // Update the User Model
+
+    await User.findByIdAndUpdate(author, {
+      $push: { threads: createdThread._id },
+    });
+
+    // Invalidate the cache for the thread page
+    revalidatePath(path);
+  } catch (error: any) {
+    throw new Error(`Failed to create thread: ${error.message}`);
+    // Log the error for debugging purposes
+    console.error("Error creating thread:", error);
+  }
 }
