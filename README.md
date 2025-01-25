@@ -10,6 +10,7 @@
    - [JWT Clock Skew Issue Resolution](#jwt-clock-skew-issue-resolution)
    - [Debugging and Fixing Image Upload Issues](#debugging-and-fixing-image-upload-issues)
    - [Only plain objects can be passed to client components from server components](#only-plain-objects-can-be-passed-to-client-components-from-server-components)
+   - [Resolving Data Fetching Error in NextJs Client Components](#resolving-data-fetching-error-in-nextjs-client-components)
 6. [Deployment](#deployment)
 7. [Contributing](#contributing)
 8. [License](#license)
@@ -516,6 +517,216 @@ Client Components in Next.js only accept data that can be serialized to JSON (e.
 ---
 
 By following these practices, you can ensure seamless data handling between Server and Client Components in your Next.js application, avoiding serialization-related errors like the one discussed above.
+
+---
+
+Sure! Here's a README structure that explains the problem you're facing, the error message, and the solution with code examples, along with a Table of Contents for easy navigation.
+
+---
+
+# Resolving Data Fetching Error in Next.js Client Components
+
+This document explains a common issue faced when trying to fetch data asynchronously inside React Client Components in Next.js and how to solve it. The issue arises when you attempt to call an asynchronous function (e.g., `fetchPosts`) directly inside a Client Component, which violates the rendering flow of Client Components. The following sections provide an explanation of the problem and offer several solutions.
+
+---
+
+# Resolving Data Fetching Error in NextJs Client Components
+
+## Problem Overview
+
+In Next.js, Client Components are rendered on the client-side. Attempting to call an asynchronous function (such as `fetchPosts`) directly inside a Client Component causes an error because the asynchronous logic should be handled differently depending on where the component is executed (server vs client).
+
+This document explains the error, the cause, and provides several ways to fix the problem.
+
+## Error Message
+
+You may encounter an error like:
+
+```
+Error: Cannot call an async function directly in a React Client Component
+```
+
+This occurs when you try to call an asynchronous function within a Client Component in Next.js.
+
+---
+
+## Why the Problem Occurs
+
+Next.js Client Components (denoted by `"use client"`) are rendered on the client side, which means they don't have native support for asynchronous data fetching during the render process. When you try to fetch data asynchronously in these components, the rendering process is interrupted, causing the error.
+
+In Next.js, **Server Components** are designed to handle asynchronous operations such as data fetching during rendering. Client Components, on the other hand, are for handling interactivity on the client-side after the initial render.
+
+---
+
+## How the Problem Occurs
+
+The error is generated when you attempt to call an asynchronous function (like `fetchPosts`) directly within a Client Component, such as:
+
+```javascript
+// This will throw an error
+export default function Home() {
+  const posts = fetchPosts(1, 30); // fetchPosts is an async function
+  return (
+    <div>
+      {posts.map((post) => (
+        <p>{post.title}</p>
+      ))}
+    </div>
+  );
+}
+```
+
+In this code, `fetchPosts` is called during the initial render of the component, which is not supported in Client Components.
+
+---
+
+## Solutions
+
+### Option 1: Use a Server Component
+
+The most straightforward solution is to move the data-fetching logic to a **Server Component**, which can handle asynchronous operations during the render process.
+
+**Code Example:**
+
+```javascript
+// app/(root)/page.tsx
+import { fetchPosts } from "@/lib/actions/thread.actions";
+
+export default async function Home() {
+  const result = await fetchPosts(1, 30); // Fetch posts on the server
+
+  return (
+    <>
+      <h1 className="head-text text-left">Home</h1>
+      <ul>
+        {result.posts.map((post) => (
+          <li key={post._id}>{post.title}</li>
+        ))}
+      </ul>
+    </>
+  );
+}
+```
+
+**Explanation:** Server Components execute on the server and can handle asynchronous data fetching during render. This approach works when your page doesn’t need interactivity on the client side.
+
+---
+
+### Option 2: Use React Query in a Client Component
+
+If your page needs to be interactive or handle dynamic updates, you can use **React Query** in a Client Component to handle asynchronous data fetching.
+
+#### Step 1: Install React Query
+
+```bash
+npm install @tanstack/react-query
+```
+
+#### Step 2: Set Up React Query Provider
+
+Wrap your application with a `QueryClientProvider` in `app/layout.tsx`:
+
+```javascript
+// app/layout.tsx
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+#### Step 3: Fetch Data in a Client Component
+
+```javascript
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import { fetchPosts } from "@/lib/actions/thread.actions";
+
+export default function Home() {
+  const { data, isLoading, error } = useQuery(["posts", 1, 30], () =>
+    fetchPosts(1, 30)
+  );
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error fetching posts</p>;
+
+  return (
+    <>
+      <h1 className="head-text text-left">Home</h1>
+      <ul>
+        {data.posts.map((post) => (
+          <li key={post._id}>{post.title}</li>
+        ))}
+      </ul>
+    </>
+  );
+}
+```
+
+**Explanation:** React Query handles fetching, caching, and updating data on the client side. This approach is ideal for pages requiring dynamic updates or interactivity.
+
+---
+
+### Option 3: Combine Server and Client Components
+
+If you need to combine server-side data fetching with client-side interactivity, you can split your component into a **Server Component** for data fetching and a **Client Component** for rendering the data.
+
+#### Step 1: Fetch Data in a Server Component
+
+```javascript
+// app/(root)/page.tsx
+import PostList from "@/components/PostList";
+import { fetchPosts } from "@/lib/actions/thread.actions";
+
+export default async function Home() {
+  const result = await fetchPosts(1, 30);
+
+  return (
+    <>
+      <h1 className="head-text text-left">Home</h1>
+      <PostList posts={result.posts} />
+    </>
+  );
+}
+```
+
+#### Step 2: Pass Data to a Client Component
+
+```javascript
+// components/PostList.tsx
+"use client";
+
+export default function PostList({ posts }) {
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li key={post._id}>{post.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**Explanation:** The data is fetched on the server side and passed as props to a Client Component for rendering, combining both server-side and client-side functionality.
+
+---
+
+## Choosing the Right Option
+
+- **Option 1 (Server Component):** Best for static/dynamic pages where interactivity isn’t required.
+- **Option 2 (React Query in Client Component):** Best for highly interactive pages or where data updates frequently and requires client-side handling.
+- **Option 3 (Combine Server and Client Components):** Best for hybrid pages where server-side data fetching and client-side interactivity are both needed.
 
 ---
 
