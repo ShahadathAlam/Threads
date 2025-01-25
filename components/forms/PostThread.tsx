@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -14,15 +13,8 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "../ui/textarea";
 
-import React, { ChangeEvent, useState } from "react";
-
-import { Input } from "@/components/ui/input";
-
-import Image from "next/image";
-
 import { usePathname, useRouter } from "next/navigation";
-import { UserValidation } from "@/lib/validations/user";
-import { updateUser } from "@/lib/actions/user.actions";
+
 import { ThreadValidation } from "@/lib/validations/thread";
 import { createThread } from "@/lib/actions/thread.actions";
 interface Props {
