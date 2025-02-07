@@ -14,11 +14,11 @@ export default async function page({ params }: { params: { id: string } }) {
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 
-  const thread = await fetchThreadById(params.id);
+  //   const thread = await fetchThreadById(params.id);
   return (
     <section className="relative">
       <div>
-        <ThreadCard
+        {/* <ThreadCard
           key={thread._id}
           id={thread._id}
           currentUserId={user?.id || ""}
@@ -28,7 +28,7 @@ export default async function page({ params }: { params: { id: string } }) {
           community={thread.community}
           createdAt={thread.createdAt}
           comments={thread.children}
-        />
+        /> */}
       </div>
     </section>
   );
