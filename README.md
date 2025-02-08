@@ -7,10 +7,13 @@
 3. [Tech Stack](#tech-stack)
 4. [Getting Started](#getting-started)
 5. [Common Issues and Solutions](#common-issues-and-solutions)
+
    - [JWT Clock Skew Issue Resolution](#jwt-clock-skew-issue-resolution)
    - [Debugging and Fixing Image Upload Issues](#debugging-and-fixing-image-upload-issues)
    - [Only plain objects can be passed to client components from server components](#only-plain-objects-can-be-passed-to-client-components-from-server-components)
    - [Resolving Data Fetching Error in NextJs Client Components](#resolving-data-fetching-error-in-nextjs-client-components)
+   - [Fixing params.id Error in Next.js Dynamic Routes](#fixing-paramsid-error-in-nextjs-dynamic-routes)
+
 6. [Deployment](#deployment)
 7. [Contributing](#contributing)
 8. [License](#license)
@@ -728,7 +731,103 @@ export default function PostList({ posts }) {
 - **Option 2 (React Query in Client Component):** Best for highly interactive pages or where data updates frequently and requires client-side handling.
 - **Option 3 (Combine Server and Client Components):** Best for hybrid pages where server-side data fetching and client-side interactivity are both needed.
 
----
+# Fixing `params.id` Error in Next.js Dynamic Routes
+
+## ❌ Error Description
+
+When trying to access a dynamic route `/thread/[id]` in a **Next.js App Router (app directory)**, the following error occurred:
+
+```
+Error: Route "/thread/[id]" used `params.id`. `params` should be awaited before using its properties.
+```
+
+## ⚠️ How the Error Occurred
+
+The issue arose in a **Server Component** when trying to access `params.id` inside the page function:
+
+### ❌ **Incorrect Code (Before Fix)**
+
+```tsx
+export default async function Page({ params }: { params: { id: string } }) {
+  if (!params.id) return null;
+  const user = await currentUser();
+  if (!user) return null;
+
+  const userInfo = await fetchUser(user.id);
+  if (!userInfo?.onboarded) redirect("/onboarding");
+
+  const thread = await fetchThreadById(params.id);
+  return <ThreadCard id={thread._id} content={thread.text} />;
+}
+```
+
+## 🧐 Why the Error Occurred
+
+- In **Server Components**, `params` is **asynchronously resolved** and is treated as a `Promise`.
+- Directly accessing `params.id` without awaiting `params` resulted in an **undefined or missing property error**.
+- Next.js expected `params` to be awaited before using its properties.
+
+## ✅ How the Error Was Solved
+
+To fix this, we **explicitly awaited `params`** before extracting `id`.
+
+### ✅ **Corrected Code (After Fix)**
+
+```tsx
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params; // Await params before using
+  if (!id) return null;
+
+  const user = await currentUser();
+  if (!user) return null;
+
+  const userInfo = await fetchUser(user.id);
+  if (!userInfo?.onboarded) redirect("/onboarding");
+
+  const thread = await fetchThreadById(id);
+  return (
+    <section className="relative">
+      <ThreadCard
+        key={thread._id}
+        id={thread._id}
+        currentUserId={user?.id || ""}
+        parentId={thread.parentId}
+        content={thread.text}
+        author={thread.author}
+        community={thread.community}
+        createdAt={thread.createdAt}
+        comments={thread.children}
+      />
+    </section>
+  );
+}
+```
+
+## 🛠 Alternative Solutions
+
+1. **Force Dynamic Rendering**
+
+   - If `params.id` is only available at runtime, add:
+
+   ```tsx
+   export const dynamic = "force-dynamic";
+   ```
+
+   - This ensures the page fetches data dynamically instead of statically.
+
+2. **Check if `params` is Undefined**
+   - Add debugging logs to confirm `params` is being passed correctly:
+   ```tsx
+   console.log("Params received:", params);
+   ```
+
+## 🎯 Conclusion
+
+The error was caused by treating `params` as a synchronous object in a **Server Component**, while it is actually a `Promise`. The solution was to **await `params` before accessing its properties**. This fix ensures smooth dynamic routing in **Next.js App Router**.
 
 # Deployment
 
