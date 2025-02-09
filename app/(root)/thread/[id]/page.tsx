@@ -21,7 +21,7 @@ export default async function Page({
   if (!userInfo?.onboarded) redirect("/onboarding");
 
   const thread = await fetchThreadById(id);
-  // console.log(thread);
+  // console.log(typeof thread.id);
   return (
     <section className="relative">
       <div>

@@ -13,6 +13,7 @@
    - [Only plain objects can be passed to client components from server components](#only-plain-objects-can-be-passed-to-client-components-from-server-components)
    - [Resolving Data Fetching Error in NextJs Client Components](#resolving-data-fetching-error-in-nextjs-client-components)
    - [Fixing params.id Error in Next.js Dynamic Routes](#fixing-paramsid-error-in-nextjs-dynamic-routes)
+   - [Handling MongoDB ObjectId in Next.js](#handling-mongodb-objectid-in-nextjs)
 
 6. [Deployment](#deployment)
 7. [Contributing](#contributing)
@@ -828,6 +829,159 @@ export default async function Page({
 ## 🎯 Conclusion
 
 The error was caused by treating `params` as a synchronous object in a **Server Component**, while it is actually a `Promise`. The solution was to **await `params` before accessing its properties**. This fix ensures smooth dynamic routing in **Next.js App Router**.
+
+# Handling MongoDB ObjectId in Next.js
+
+When working with **MongoDB ObjectId** in a **Next.js full-stack application**, you might encounter cases where ObjectId needs to be passed between the frontend and backend. This is where `JSON.stringify` and `JSON.parse` come into play.
+
+This guide explains:
+
+- Why `JSON.stringify` is used when passing **MongoDB ObjectId** as a prop.
+- Why `JSON.parse` is used to restore the ObjectId before using it in database operations.
+- A **better approach** to handle ObjectId properly in MongoDB without relying on JSON conversions.
+
+---
+
+## 🛠 Why Use `JSON.stringify`?
+
+### ✅ Problem: ObjectId Cannot Be Directly Passed as a Prop
+
+In a Next.js application, you may have a scenario where you pass `userInfo._id` (a MongoDB ObjectId) as a prop:
+
+```tsx
+<Comment
+  threadId={thread.id}
+  currentUserImg={user.imageUrl}
+  currentUserId={JSON.stringify(userInfo._id)}
+/>
+```
+
+### 🔹 Reason for `JSON.stringify(userInfo._id)`:
+
+- **MongoDB ObjectId is a special object**, not a simple string.
+- React props can only accept **strings, numbers, booleans, or serializable objects**.
+- `JSON.stringify` **converts ObjectId into a JSON string**, making it **safe** to pass as a prop.
+
+#### Example:
+
+If `userInfo._id` is:
+
+```js
+new ObjectId("65b0c6a6e1d2a3f78a9b23c4");
+```
+
+After `JSON.stringify(userInfo._id)`, it becomes:
+
+```json
+"65b0c6a6e1d2a3f78a9b23c4"
+```
+
+This is a **plain string** that React can handle without errors.
+
+---
+
+## 🛠 Why Use `JSON.parse`?
+
+### ✅ Problem: Stringified ObjectId Cannot Be Used in MongoDB Queries
+
+In the `Comment` component, the `currentUserId` is received as a **JSON string**. Before using it in database queries, we need to **convert it back to an ObjectId**.
+
+```tsx
+await addCommentToThread(
+  threadId,
+  values.thread,
+  JSON.parse(currentUserId),
+  pathname
+);
+```
+
+### 🔹 Reason for `JSON.parse(currentUserId)`:
+
+- When `currentUserId` was **stringified**, it became a **plain string**.
+- MongoDB **requires** ObjectId format for queries.
+- `JSON.parse` **restores** the original structure of the ObjectId **before using it** in database operations.
+
+#### Example:
+
+String received in `addCommentToThread`:
+
+```json
+"65b0c6a6e1d2a3f78a9b23c4"
+```
+
+After `JSON.parse(currentUserId)`, it remains a string, **not an ObjectId**. This can cause MongoDB queries to fail.
+
+---
+
+## 🚀 Best Practice: Convert String to ObjectId Before Database Operations
+
+Instead of relying on `JSON.parse`, the **best approach** is to explicitly convert `userId` to an ObjectId in the backend.
+
+### ✅ Corrected `addCommentToThread` Function:
+
+```ts
+import mongoose from "mongoose";
+
+export async function addCommentToThread(
+  threadId: string,
+  commentText: string,
+  userId: string, // Expecting a string
+  path: string
+) {
+  connectToDB();
+  try {
+    const originalThread = await Thread.findById(threadId);
+    if (!originalThread) {
+      throw new Error("Thread not found");
+    }
+
+    // ✅ Convert userId string to ObjectId before saving
+    const objectIdUser = new mongoose.Types.ObjectId(userId);
+
+    const commentThread = new Thread({
+      text: commentText,
+      author: objectIdUser, // Now correctly formatted as ObjectId
+      parentId: threadId,
+    });
+
+    const savedCommentThread = await commentThread.save();
+    originalThread.children.push(savedCommentThread._id);
+    await originalThread.save();
+
+    revalidatePath(path);
+  } catch (error: any) {
+    throw new Error(`Failed to add comment to thread: ${error.message}`);
+  }
+}
+```
+
+---
+
+## 📌 Summary
+
+| Step                           | Purpose                                                                                |
+| ------------------------------ | -------------------------------------------------------------------------------------- |
+| `JSON.stringify(userInfo._id)` | Converts ObjectId to a **string** to pass as a prop in React.                          |
+| `JSON.parse(currentUserId)`    | Converts the **stringified ObjectId** back before usage.                               |
+| **Better Approach**            | Convert `userId` **directly** to `new mongoose.Types.ObjectId(userId)` in the backend. |
+
+### ✅ Key Takeaways
+
+- `JSON.stringify` is needed to safely pass **ObjectId as a prop**.
+- `JSON.parse` is used to **restore data integrity** before processing.
+- **Best practice**: Convert string **explicitly to ObjectId** in the backend.
+
+🚀 **This approach prevents errors and ensures smooth MongoDB operations in Next.js applications!** 🎯
+
+---
+
+### 🔗 **Want to Learn More?**
+
+- [MongoDB ObjectId Documentation](https://www.mongodb.com/docs/manual/reference/method/ObjectId/)
+- [React Props Best Practices](https://react.dev/learn/passing-props-to-a-component)
+- [Next.js Data Fetching](https://nextjs.org/docs/data-fetching)
+
+🔹 **Now you're equipped to handle ObjectId correctly in Next.js!** 🚀
 
 # Deployment
 
