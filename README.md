@@ -14,6 +14,7 @@
    - [Resolving Data Fetching Error in NextJs Client Components](#resolving-data-fetching-error-in-nextjs-client-components)
    - [Fixing params.id Error in Next.js Dynamic Routes](#fixing-paramsid-error-in-nextjs-dynamic-routes)
    - [Handling MongoDB ObjectId in Next.js](#handling-mongodb-objectid-in-nextjs)
+   - [Fixing Full-Page Image Stretch in Next.js](#fixing-full-page-image-stretch-in-nextjs)
 
 6. [Deployment](#deployment)
 7. [Contributing](#contributing)
@@ -982,6 +983,62 @@ export async function addCommentToThread(
 - [Next.js Data Fetching](https://nextjs.org/docs/data-fetching)
 
 🔹 **Now you're equipped to handle ObjectId correctly in Next.js!** 🚀
+
+# Fixing Full-Page Image Stretch in Next.js
+
+When using the `<Image>` component with the `fill` prop in Next.js, images may unexpectedly stretch to fill the entire page if their parent container lacks defined dimensions.
+
+---
+
+## ❗ Problem
+
+```tsx
+<Image
+  src={imgUrl}
+  alt="Profile Image"
+  fill
+  className="rounded-full object-cover"
+/>
+```
+
+Without a properly sized parent, the image fills the full page.
+
+---
+
+## ✅ Solution
+
+Wrap the image in a container with set dimensions and `relative` positioning:
+
+```tsx
+<div className="relative h-20 w-20">
+  <Image
+    src={imgUrl}
+    alt="Profile Image"
+    fill
+    className="rounded-full object-cover"
+  />
+</div>
+```
+
+---
+
+## 🧠 Why It Works
+
+- `relative`: Makes the container the reference for `fill`
+- `h-20 w-20`: Defines the size
+- `object-cover`: Maintains aspect ratio, crops excess
+
+---
+
+## 💡 Summary
+
+To prevent stretching:
+
+1. Add a `relative` container with size
+2. Use `fill` inside it
+3. Apply `object-cover` for proper scaling
+
+This ensures your image renders cleanly without distortion.
 
 # Deployment
 
