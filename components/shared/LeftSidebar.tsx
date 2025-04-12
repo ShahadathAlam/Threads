@@ -1,16 +1,30 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { sidebarLinks } from "@/constants/index";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { SignedIn, SignOutButton, useClerk } from "@clerk/nextjs";
+import { SignedIn, SignOutButton, useClerk, useAuth } from "@clerk/nextjs";
 
 export default function LeftSidebar() {
   const pathname = usePathname();
   const { signOut } = useClerk(); // Use Clerk's signOut function
+
+  const { userId, isLoaded } = useAuth(); // Check if user is loaded
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (isLoaded) {
+      setLoaded(true);
+    }
+  }, [isLoaded]);
+
+  if (!loaded) {
+    // Optionally return a loading spinner or nothing until the user data is available
+    return <div>Loading...</div>;
+  }
 
   return (
     <section className="custom-scrollbar leftsidebar">
@@ -22,6 +36,7 @@ export default function LeftSidebar() {
             (pathname.includes(link.route) && link.route.length > 1) ||
             pathname === link.route;
 
+          if (link.route === "/profile") link.route = `${link.route}/${userId}`;
           return (
             <Link
               href={link.route}
