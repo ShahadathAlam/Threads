@@ -15,6 +15,7 @@
    - [Fixing params.id Error in Next.js Dynamic Routes](#fixing-paramsid-error-in-nextjs-dynamic-routes)
    - [Handling MongoDB ObjectId in Next.js](#handling-mongodb-objectid-in-nextjs)
    - [Fixing Full-Page Image Stretch in Next.js](#fixing-full-page-image-stretch-in-nextjs)
+   - [Fixing `userId` Being `undefined` in a Clerk Sidebar Component](#fixing-userid-being-undefined-in-a-clerk-sidebar-component)
 
 6. [Deployment](#deployment)
 7. [Contributing](#contributing)
@@ -1039,6 +1040,84 @@ To prevent stretching:
 3. Apply `object-cover` for proper scaling
 
 This ensures your image renders cleanly without distortion.
+
+# Fixing userid being undefined in a clerk sidebar component
+
+While building a **Left Sidebar** navigation component in a Next.js 15 app with **Clerk authentication**, I ran into an issue:  
+The `userId` from Clerk’s `useAuth()` hook was coming back as `undefined`.
+
+---
+
+### 💡 The Problem
+
+I wanted to dynamically update the `/profile` route for the authenticated user like this:
+
+```tsx
+if (link.route === "/profile") {
+  link.route = `${link.route}/${userId}`;
+}
+```
+
+But every time I rendered the component, `userId` was `undefined`, resulting in broken routes like `/profile/undefined`.
+
+---
+
+### 🧠 Why It Happened
+
+Clerk loads authentication data **asynchronously**. When the component mounts, the `useAuth()` hook may **not immediately provide the `userId`**, because Clerk hasn’t finished fetching the user session yet.
+
+So if you try to use `userId` right away, you’re accessing it **before Clerk is ready**, which causes the `undefined` issue.
+
+---
+
+### 🔍 Diagnosis
+
+I logged the `userId` like this:
+
+```tsx
+console.log(userId); // undefined on first render
+```
+
+That confirmed that Clerk hadn't finished loading the session when the component tried to access it.
+
+---
+
+### ✅ The Solution
+
+Clerk’s `useAuth()` hook gives you a helpful flag called `isLoaded`, which tells you when the authentication context is fully loaded.
+
+**Steps to fix:**
+
+1. Destructure `isLoaded` from `useAuth()`.
+2. Delay rendering the component or logic that depends on `userId` until `isLoaded` is `true`.
+
+---
+
+### 🧩 Final Fix (Code Snippet)
+
+```tsx
+import { useAuth } from "@clerk/nextjs";
+
+const { userId, isLoaded } = useAuth();
+
+if (!isLoaded) {
+  return <div>Loading...</div>; // or return null/spinner
+}
+
+// Safe to use userId now
+if (link.route === "/profile" && userId) {
+  link.route = `${link.route}/${userId}`;
+}
+```
+
+---
+
+### 🎉 Final Thoughts
+
+This issue is easy to overlook when using Clerk in a client-side context. The fix is simple but essential —  
+**always check `isLoaded` before accessing values like `userId`, `sessionId`, etc.**
+
+By doing so, you ensure a more stable and secure app experience for users.
 
 # Deployment
 
