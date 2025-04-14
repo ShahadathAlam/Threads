@@ -16,6 +16,7 @@
    - [Handling MongoDB ObjectId in Next.js](#handling-mongodb-objectid-in-nextjs)
    - [Fixing Full-Page Image Stretch in Next.js](#fixing-full-page-image-stretch-in-nextjs)
    - [Fixing `userId` Being `undefined` in a Clerk Sidebar Component](#fixing-userid-being-undefined-in-a-clerk-sidebar-component)
+   - [Developer Note: Solving a TypeScript + MongoDB `$or` Error](#developer-note-solving-a-typescript-and-mongodb-error)
 
 6. [Deployment](#deployment)
 7. [Contributing](#contributing)
@@ -1118,6 +1119,59 @@ This issue is easy to overlook when using Clerk in a client-side context. The fi
 **always check `isLoaded` before accessing values like `userId`, `sessionId`, etc.**
 
 By doing so, you ensure a more stable and secure app experience for users.
+
+Perfect, Shahadath! Here's a clean and professional section you can add to your **README.md** to showcase how you debugged and solved the `$or` TypeScript issue. This not only demonstrates your **problem-solving skills** but also your ability to write clean, type-safe code in real-world scenarios.
+
+---
+
+# Developer Note: Solving a TypeScript and MongoDB Error
+
+While building the `fetchUsers` function to support user search and filtering, I encountered the following TypeScript error:
+
+```
+Property '$or' does not exist on type '{ id: { $ne: string; }; }'.
+```
+
+### 🔍 What caused this?
+
+When declaring a basic query object like:
+
+```ts
+const query = { id: { $ne: userId } };
+```
+
+TypeScript infers the type strictly based on this initial structure. So when trying to dynamically add a MongoDB operator like `$or`, TypeScript throws an error — because `$or` wasn’t part of the inferred type.
+
+### ✅ The Solution: Use `FilterQuery<typeof User>`
+
+To fix this and make the query type-safe and flexible, I used the `FilterQuery` utility provided by Mongoose:
+
+```ts
+import { FilterQuery } from "mongoose";
+
+const query: FilterQuery<typeof User> = {
+  id: { $ne: userId },
+};
+
+if (searchString.trim() !== "") {
+  const regex = new RegExp(searchString, "i");
+
+  query.$or = [{ username: { $regex: regex } }, { name: { $regex: regex } }];
+}
+```
+
+### 💡 Why this works
+
+- `FilterQuery<typeof User>` allows use of MongoDB query operators like `$ne`, `$or`, and `$regex` without type errors.
+- It ensures full **type safety** with the `User` model while building dynamic queries.
+- It’s scalable, clean, and aligns perfectly with TypeScript best practices.
+
+---
+
+📌 **Takeaway**:  
+When working with dynamic MongoDB queries in TypeScript, always use `FilterQuery<ModelType>` to avoid shape-related errors and keep your code robust.
+
+---
 
 # Deployment
 
