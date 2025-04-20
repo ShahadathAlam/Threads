@@ -16,7 +16,7 @@ export default async function ThreadsTab({
   //  Fetch profile threads
 
   let result = await fetchUserPosts(accountId);
-  console.log(result);
+  // console.log(result);
   if (!result) redirect("/");
 
   return (
