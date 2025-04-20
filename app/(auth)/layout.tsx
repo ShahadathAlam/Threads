@@ -40,7 +40,10 @@ export default function RootLayout({
           <SignedIn>
             <UserButton />
           </SignedIn> */}
-          {children}
+
+          <div className="w-full flex justify-center items-center min-h-screen">
+            {children}
+          </div>
         </body>
       </html>
     </ClerkProvider>
