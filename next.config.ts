@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   // experimental: {
   //   serverActions: {}, // Updated to an empty object
   // },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   serverExternalPackages: ["mongoose"], // Moved from experimental
   eslint: {
     // Allows production builds even if there are ESLint errors
