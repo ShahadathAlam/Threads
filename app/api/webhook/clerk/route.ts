@@ -69,6 +69,7 @@ export const POST = async (request: Request) => {
       evnt?.data ?? {};
 
     try {
+      console.log("Organization created", evnt?.data);
       // @ts-ignore
       await createCommunity(
         // @ts-ignore
