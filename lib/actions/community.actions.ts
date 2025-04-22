@@ -19,8 +19,19 @@ export async function createCommunity(
   try {
     connectToDB();
 
+    console.log("createCommunity called with:", {
+      id,
+      name,
+      username,
+      image,
+      bio,
+      createdById,
+    });
+
     // Find the user with the provided unique id
     const user = await User.findOne({ id: createdById });
+
+    console.log("Found user:", user);
 
     if (!user) {
       throw new Error("User not found"); // Handle the case if the user with the id is not found

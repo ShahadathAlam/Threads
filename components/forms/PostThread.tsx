@@ -37,6 +37,8 @@ export default function PostThread({ userId }: { userId: string }) {
   const pathname = usePathname();
 
   const { organization } = useOrganization();
+
+  console.log("organization", organization?.id);
   const form = useForm<z.infer<typeof ThreadValidation>>({
     resolver: zodResolver(ThreadValidation),
     defaultValues: {
@@ -46,17 +48,15 @@ export default function PostThread({ userId }: { userId: string }) {
   });
 
   async function onSubmit(values: z.infer<typeof ThreadValidation>) {
-    try {
-      await createThread({
-        text: values.thread,
-        author: userId,
-        communityId: organization ? organization.id : null,
+    await createThread({
+      text: values.thread,
+      author: userId,
+      communityId: organization ? organization.id : null,
 
-        path: pathname,
-      });
+      path: pathname,
+    });
 
-      router.push(`/`);
-    } catch (error) {}
+    router.push(`/`);
   }
   return (
     <Form {...form}>

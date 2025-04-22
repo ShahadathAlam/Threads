@@ -68,12 +68,11 @@ export async function createThread({
       { id: communityId },
       { _id: 1 }
     );
-    console.log("communityIdObject:", communityIdObject);
-
+    console.log("communityIdObject", communityIdObject);
     const createdThread = await Thread.create({
       text,
       author,
-      community: communityIdObject, // Assign communityId if provided, or leave it null for personal account
+      community: communityIdObject?._id || null, // Assign communityId if provided, or leave it null for personal account
     });
 
     // Update User model
@@ -83,7 +82,7 @@ export async function createThread({
 
     if (communityIdObject) {
       // Update Community model
-      await Community.findByIdAndUpdate(communityIdObject, {
+      await Community.findByIdAndUpdate(communityIdObject._id, {
         $push: { threads: createdThread._id },
       });
     }
