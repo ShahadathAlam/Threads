@@ -1,3 +1,4 @@
+import CommunityCard from "@/components/cards/CommunityCard";
 import UserCard from "@/components/cards/UserCard";
 import { fetchCommunities } from "@/lib/actions/community.actions";
 import { fetchUser, fetchUsers } from "@/lib/actions/user.actions";
@@ -34,13 +35,14 @@ export default async function Page() {
         ) : (
           <>
             {result.communities.map((community) => (
-              <UserCard
-                key={person.id}
-                id={person.id}
-                name={person.name}
-                username={person.username}
-                imgUrl={person.image}
-                personType="User"
+              <CommunityCard
+                key={community.id}
+                id={community.id}
+                name={community.name}
+                username={community.username}
+                imgUrl={community.image}
+                bio={community.bio}
+                members={community.members}
               />
             ))}
           </>

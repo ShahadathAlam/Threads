@@ -1,20 +1,19 @@
-import { formatDateString } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+
+import { formatDateString } from "@/lib/utils";
+import DeleteThread from "../forms/DeleteThread";
 
 interface Props {
   id: string;
   currentUserId: string;
-
   parentId: string | null;
   content: string;
   author: {
-    id: string;
-
     name: string;
     image: string;
+    id: string;
   };
-
   community: {
     id: string;
     name: string;
@@ -26,11 +25,10 @@ interface Props {
       image: string;
     };
   }[];
-
   isComment?: boolean;
 }
 
-export default function ThreadCard({
+function ThreadCard({
   id,
   currentUserId,
   parentId,
@@ -41,7 +39,6 @@ export default function ThreadCard({
   comments,
   isComment,
 }: Props) {
-  console.log(community);
   return (
     <article
       className={`flex w-full flex-col rounded-xl ${
@@ -54,7 +51,7 @@ export default function ThreadCard({
             <Link href={`/profile/${author.id}`} className="relative h-11 w-11">
               <Image
                 src={author.image}
-                alt="Profile Image"
+                alt="user_community_image"
                 fill
                 className="cursor-pointer rounded-full"
               />
@@ -81,28 +78,25 @@ export default function ThreadCard({
                   height={24}
                   className="cursor-pointer object-contain"
                 />
-
                 <Link href={`/thread/${id}`}>
                   <Image
                     src="/assets/reply.svg"
-                    alt="reply"
+                    alt="heart"
                     width={24}
                     height={24}
                     className="cursor-pointer object-contain"
                   />
                 </Link>
-
                 <Image
                   src="/assets/repost.svg"
-                  alt="repost"
+                  alt="heart"
                   width={24}
                   height={24}
                   className="cursor-pointer object-contain"
                 />
-
                 <Image
                   src="/assets/share.svg"
-                  alt="share"
+                  alt="heart"
                   width={24}
                   height={24}
                   className="cursor-pointer object-contain"
@@ -112,7 +106,7 @@ export default function ThreadCard({
               {isComment && comments.length > 0 && (
                 <Link href={`/thread/${id}`}>
                   <p className="mt-1 text-subtle-medium text-gray-1">
-                    {comments.length} replies
+                    {comments.length} repl{comments.length > 1 ? "ies" : "y"}
                   </p>
                 </Link>
               )}
@@ -120,9 +114,35 @@ export default function ThreadCard({
           </div>
         </div>
 
-        {/* TODO: DeleteThread */}
-        {/* TODO: Show comment logos */}
+        <DeleteThread
+          threadId={JSON.stringify(id)}
+          currentUserId={currentUserId}
+          authorId={author.id}
+          parentId={parentId}
+          isComment={isComment}
+        />
       </div>
+
+      {!isComment && comments.length > 0 && (
+        <div className="ml-1 mt-3 flex items-center gap-2">
+          {comments.slice(0, 2).map((comment, index) => (
+            <Image
+              key={index}
+              src={comment.author.image}
+              alt={`user_${index}`}
+              width={24}
+              height={24}
+              className={`${index !== 0 && "-ml-5"} rounded-full object-cover`}
+            />
+          ))}
+
+          <Link href={`/thread/${id}`}>
+            <p className="mt-1 text-subtle-medium text-gray-1">
+              {comments.length} repl{comments.length > 1 ? "ies" : "y"}
+            </p>
+          </Link>
+        </div>
+      )}
 
       {!isComment && community && (
         <Link
@@ -146,3 +166,5 @@ export default function ThreadCard({
     </article>
   );
 }
+
+export default ThreadCard;
